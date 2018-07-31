@@ -1,0 +1,90 @@
+from skimage import exposure,data
+from sklearn.neural_network import MLPClassifier
+from sklearn.datasets import fetch_mldata
+import numpy as np
+import pickle
+import gzip
+import csv
+import pandas as pd
+from sklearn import cross_validation
+import io
+
+def loadCSVfile2():
+    list_file = []
+    with open('C:\Users\cambr\OneDrive\Desktop\ptrain.csv','rb') as csv_file:  
+        all_lines=csv.reader(csv_file)  
+        for one_line in all_lines:  
+            list_file.append(one_line)  
+    list_file.remove(list_file[0])
+    arr_file = np.array(list_file)
+    arr_file=arr_file.astype(np.int32)
+    train_label = arr_file[:, -1]#the last column is the label
+    train_data = arr_file[:, 0:-2]#the rest columns are the data
+    return train_data, train_label 
+#print loadCSVfile2()
+
+def loadCSVfile1():
+    list_file = []
+    with open('C:\Users\cambr\OneDrive\Desktop\ptest.csv','rb') as csv_file:  
+        all_lines=csv.reader(csv_file)  
+        for one_line in all_lines:  
+            list_file.append(one_line)  
+    list_file.remove(list_file[0])
+    arr_file = np.array(list_file)
+    arr_file=arr_file.astype(np.int32)
+    test_label = arr_file[:, -1]#the last column is the label
+    test_data = arr_file[:, 0:-2]#the rest columns are the data
+    return test_data, test_label 
+#print loadCSVfile1()
+
+
+#X_train,X_test,y_train,y_test=cross_validation.train_test_split(a2,c,test_size=0.15,random_state=0)
+X_train,y_train=loadCSVfile1()
+X_test,y_test=loadCSVfile2()
+#print X_train.shape
+
+size = 16
+idx = int(size/2) 
+newInput = []
+newTarget = []
+window_in1=[]
+times = int(len(X_train) / size)
+count = 0
+for i in range(0, len(X_train)-size):
+ window_in = X_train[0 + count:size + count]
+ window_tar = y_train[0 + count:size + count]
+ 
+ window_in1=np.hstack((window_in[0],window_in[1],window_in[2],window_in[3],window_in[4],window_in[5],window_in[6],window_in[7],window_in[8],window_in[9],window_in[10],window_in[11],window_in[12],window_in[13],window_in[14],window_in[15]))
+ newInput.append(np.array(window_in1))
+ newTarget.append(window_tar[idx])
+ count = count + 1
+#print (np.array(newInput)).shape
+#print (np.array(newTarget)).shape
+#print window_in.shape
+Tsize = 16
+Tidx = int(Tsize/2) 
+TnewInput = []
+TnewTarget = []
+window_in2=[]
+Ttimes = int(len(X_test) / size)
+Tcount = 0
+for i in range(0, len(X_test)-Tsize):
+    Twindow_in = X_test[0 + count:size + count]
+    Twindow_tar = y_test[0 + count:size + count]
+    window_in2=np.hstack((Twindow_in[0],Twindow_in[1],Twindow_in[2],Twindow_in[3],Twindow_in[4],Twindow_in[5],Twindow_in[6],Twindow_in[7],Twindow_in[8],Twindow_in[9],Twindow_in[10],Twindow_in[11],Twindow_in[12],Twindow_in[13],Twindow_in[14],Twindow_in[15]))
+    TnewInput.append(np.array(window_in2))
+    TnewTarget.append(Twindow_tar[Tidx])
+    Tcount = Tcount + 1
+#print (np.array(TnewInput)).shape
+#print (np.array(TnewTarget)).shape
+#print window_in.shape
+
+mlp = MLPClassifier(solver='sgd', activation='relu',alpha=0,hidden_layer_sizes=(300,300), random_state=1,max_iter=100,verbose=10,learning_rate_init=.001)
+mlp.fit(newInput,newTarget )
+#mlp.fit(X_train,y_train)
+
+
+
+#print mlp.score(X_test,y_test)
+
+print mlp.score(TnewInput,TnewTarget)
